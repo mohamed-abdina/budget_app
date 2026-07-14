@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/theme_provider.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -56,6 +57,90 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
 
     setState(() => _loading = false);
+  }
+
+  Widget _buildThemeTile(WidgetRef ref) {
+    final themeMode = ref.watch(themeProvider);
+
+    return ListTile(
+      leading: Icon(
+        themeMode == ThemeMode.dark
+            ? Icons.dark_mode
+            : themeMode == ThemeMode.light
+                ? Icons.light_mode
+                : Icons.brightness_auto,
+      ),
+      title: const Text('Theme'),
+      subtitle: Text(
+        themeMode == ThemeMode.dark
+            ? 'Dark mode'
+            : themeMode == ThemeMode.light
+                ? 'Light mode'
+                : 'System default',
+      ),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (ctx) => SimpleDialog(
+            title: const Text('Choose theme'),
+            children: [
+              SimpleDialogOption(
+                onPressed: () {
+                  ref.read(themeProvider.notifier).setThemeMode(ThemeMode.system);
+                  Navigator.pop(ctx);
+                },
+                child: Row(
+                  children: [
+                    const Icon(Icons.brightness_auto),
+                    const SizedBox(width: 12),
+                    const Text('System default'),
+                    if (themeMode == ThemeMode.system) ...[
+                      const Spacer(),
+                      const Icon(Icons.check, color: Color(0xFF1D8763)),
+                    ],
+                  ],
+                ),
+              ),
+              SimpleDialogOption(
+                onPressed: () {
+                  ref.read(themeProvider.notifier).setThemeMode(ThemeMode.light);
+                  Navigator.pop(ctx);
+                },
+                child: Row(
+                  children: [
+                    const Icon(Icons.light_mode),
+                    const SizedBox(width: 12),
+                    const Text('Light'),
+                    if (themeMode == ThemeMode.light) ...[
+                      const Spacer(),
+                      const Icon(Icons.check, color: Color(0xFF1D8763)),
+                    ],
+                  ],
+                ),
+              ),
+              SimpleDialogOption(
+                onPressed: () {
+                  ref.read(themeProvider.notifier).setThemeMode(ThemeMode.dark);
+                  Navigator.pop(ctx);
+                },
+                child: Row(
+                  children: [
+                    const Icon(Icons.dark_mode),
+                    const SizedBox(width: 12),
+                    const Text('Dark'),
+                    if (themeMode == ThemeMode.dark) ...[
+                      const Spacer(),
+                      const Icon(Icons.check, color: Color(0xFF1D8763)),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -145,6 +230,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => context.push('/categories'),
                     ),
+                    const Divider(height: 1),
+                    _buildThemeTile(ref),
                     const Divider(height: 1),
                     ListTile(
                       leading: const Icon(Icons.logout, color: Colors.red),
